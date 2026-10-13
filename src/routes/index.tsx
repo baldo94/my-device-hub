@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { ArrowDownToLine, ArrowUpRight, BatteryFull, Bluetooth, Check, ChevronRight, File, Folder, Home, Layers, Lightbulb, Plus, Power, Radio, Search, SlidersHorizontal, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import tubeImage from "@/assets/led-tube.jpg";
+import { TubeControls, defaultTubeSettings, type TubeSettings, type TubePreset } from "@/components/tube-controls";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -26,6 +27,11 @@ const initialDevices: Device[] = [
 
 function Index() {
   const [devices, setDevices] = useState(initialDevices);
+  const [controlId, setControlId] = useState<number | null>(null);
+  const [tubeSettings, setTubeSettings] = useState<Record<number, TubeSettings>>({});
+  const [presets, setPresets] = useState<Record<number, Partial<Record<1 | 2, TubePreset>>>>({});
+  const controlDevice = devices.find(d => d.id === controlId);
+  const currentSettings = controlDevice ? tubeSettings[controlDevice.id] ?? defaultTubeSettings : defaultTubeSettings;
   const [tab, setTab] = useState("devices");
   const [view, setView] = useState("home");
   const [modal, setModal] = useState<"device" | "group" | null>(null);
@@ -73,9 +79,9 @@ function Index() {
         {searchOpen && <input autoFocus className="text-input search-input" aria-label="Buscar" placeholder="Buscar por nombre o espacio…" value={search} onChange={e => setSearch(e.target.value)} />}
         <div className="section-meta"><span>{tab === "devices" ? "DISPOSITIVOS CONECTADOS" : "TUS GRUPOS"}</span><span><span className="status-dot" />{active} encendidos</span></div>
         {tab === "devices" ? <div className="device-grid">
-          {devices.filter(d => `${d.name} ${d.room}`.toLowerCase().includes(search.toLowerCase())).map(device => <article className={`device-card ${device.on ? "" : "device-off"}`} key={device.id}>
+          {devices.filter(d => `${d.name} ${d.room}`.toLowerCase().includes(search.toLowerCase())).map(device => <article className={`device-card ${device.on ? "" : "device-off"}`} key={device.id} onClick={e => { if (!(e.target instanceof Element) || !e.target.closest("button, input")) setControlId(device.id); }}>
             <div className="card-top"><span className="device-status"><span className="status-dot" />Conectado</span><span className="battery"><BatteryFull size={17} />{device.battery}%</span></div>
-            <div className={`tube-visual tube-${device.color}`}><img src={tubeImage} alt={`Tubo de luz ${device.name}`} width={1024} height={1024} loading="lazy" /></div>
+            <Button variant="ghost" className={`tube-visual tube-open tube-${device.color}`} aria-label={`Abrir controles de ${device.name}`} onClick={() => setControlId(device.id)}><img src={tubeImage} alt={`Tubo de luz ${device.name}`} width={1024} height={1024} loading="lazy" /></Button>
             <div className="device-title-row"><div><h2>{device.name}</h2><span className="room-label">{device.room} <span>·</span> RGB · 1 m</span></div><Button variant="ghost" size="icon" className={`power-button ${device.on ? "is-on" : ""}`} aria-label={`${device.on ? "Apagar" : "Encender"} ${device.name}`} title={device.on ? "Apagar" : "Encender"} onClick={() => update(device.id, { on: !device.on })}><Power /></Button></div>
             <div className="brightness-label"><span><Sun size={14} />Brillo</span><span>{device.on ? device.brightness : 0}<small>%</small></span></div>
             <input className="brightness-slider" aria-label={`Brillo ${device.name}`} type="range" min="0" max="100" value={device.brightness} disabled={!device.on} onChange={e => update(device.id, { brightness: Number(e.target.value) })} />
@@ -90,5 +96,6 @@ function Index() {
     <footer className="bottom-nav"><div className="nav-inner"><div className="nav-brand">LUMA <span>LIGHT CONTROL</span></div><nav aria-label="Navegación principal"><Button variant="ghost" className={`nav-item ${view === "home" ? "active" : ""}`} onClick={() => setView("home")}><Home /><span>Inicio</span></Button><Button variant="ghost" className={`nav-item ${view === "files" ? "active" : ""}`} onClick={() => setView("files")}><Folder /><span>Archivos</span></Button></nav><span className="footer-status"><span className="status-dot" />Espacio demo</span></div></footer>
 
     {modal && <div className="modal-overlay" onClick={() => setModal(null)}><section role="dialog" aria-modal="true" aria-labelledby="modal-title" className="add-modal" onClick={e => e.stopPropagation()}><div className="modal-heading"><h2 id="modal-title">{modal === "device" ? "Añadir dispositivo demo" : "Crear grupo"}</h2><Button variant="ghost" size="icon" aria-label="Cerrar" onClick={() => setModal(null)}><X /></Button></div><p>{modal === "device" ? "Este tubo es una simulación, no una conexión física." : "Reúne tus tubos en un mismo espacio."}</p><label htmlFor="element-name">Nombre</label><input id="element-name" autoFocus className="text-input" placeholder={modal === "device" ? "Tubo LED 05" : "Nombre del grupo"} value={name} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") add(); }} />{modal === "group" && <div className="group-options">{devices.map(d => <label key={d.id}><input type="checkbox" checked={selected.includes(d.id)} onChange={e => setSelected(ids => e.target.checked ? [...ids, d.id] : ids.filter(id => id !== d.id))} />{d.name}</label>)}</div>}<Button className="w-full" disabled={!name.trim() || (modal === "group" && !selected.length)} onClick={add}><Plus />{modal === "device" ? "Añadir tubo" : "Crear grupo"}</Button></section></div>}
+    {controlDevice && <TubeControls key={controlDevice.id} device={controlDevice} settings={currentSettings} presets={presets[controlDevice.id] ?? {}} onClose={() => setControlId(null)} onChange={changes => setTubeSettings(all => ({ ...all, [controlDevice.id]: { ...(all[controlDevice.id] ?? defaultTubeSettings), ...changes } }))} onDeviceChange={changes => update(controlDevice.id, changes)} onSave={slot => setPresets(all => ({ ...all, [controlDevice.id]: { ...all[controlDevice.id], [slot]: { settings: { ...currentSettings }, brightness: controlDevice.brightness } } }))} onRecall={preset => { setTubeSettings(all => ({ ...all, [controlDevice.id]: { ...preset.settings } })); update(controlDevice.id, { brightness: preset.brightness }); }} />}
   </div>;
 }
