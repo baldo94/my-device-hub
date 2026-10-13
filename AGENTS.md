@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the LED-control prototype client-side with clearly identified demonstration devices; real hardware connectivity requires a separately specified integration.
+- Define reusable visual roles in src/styles.css and use the existing Button component for application controls.
