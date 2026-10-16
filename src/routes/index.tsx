@@ -25,9 +25,11 @@ const initialDevices: Device[] = [
   { id: 4, name: "Tubo LED 04", room: "Salón", on: false, brightness: 50, color: "mint", battery: 76 },
 ];
 
-function Index() {
+export function Index() {
   const [devices, setDevices] = useState(initialDevices);
   const [controlId, setControlId] = useState<number | null>(null);
+  const [controlGroupIndex, setControlGroupIndex] = useState<number | null>(null);
+  const [groupPresets, setGroupPresets] = useState<Record<number, Partial<Record<1 | 2, TubePreset>>>>({});
   const [tubeSettings, setTubeSettings] = useState<Record<number, TubeSettings>>({});
   const [presets, setPresets] = useState<Record<number, Partial<Record<1 | 2, TubePreset>>>>({});
   const controlDevice = devices.find(d => d.id === controlId);
@@ -37,6 +39,22 @@ function Index() {
   const [modal, setModal] = useState<"device" | "group" | null>(null);
   const [name, setName] = useState("");
   const [groups, setGroups] = useState([{ name: "Estudio", ids: [1, 2] }, { name: "Salón", ids: [3, 4] }]);
+  const controlGroup = controlGroupIndex === null ? undefined : groups[controlGroupIndex];
+  const groupDevices = controlGroup ? devices.filter(d => controlGroup.ids.includes(d.id)) : [];
+  const firstGroupDevice = groupDevices[0];
+  const groupSettings = firstGroupDevice ? tubeSettings[firstGroupDevice.id] ?? defaultTubeSettings : defaultTubeSettings;
+  const changeGroupSettings = (changes: Partial<TubeSettings>) => {
+    if (!controlGroup) return;
+    setTubeSettings(all => {
+      const next = { ...all };
+      for (const id of controlGroup.ids) next[id] = { ...(all[id] ?? defaultTubeSettings), ...changes };
+      return next;
+    });
+  };
+  const changeGroupDevices = (changes: { brightness?: number; on?: boolean }) => {
+    if (!controlGroup) return;
+    setDevices(ds => ds.map(d => controlGroup.ids.includes(d.id) ? { ...d, ...changes } : d));
+  };
   const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -88,7 +106,7 @@ function Index() {
             <div className="card-bottom"><div className="color-swatches">{["mint", "peach", "ice"].map(color => <Button key={color} variant="ghost" size="icon" className={`swatch swatch-${color} ${device.color === color ? "chosen" : ""}`} title={{ mint: "Menta", peach: "Coral", ice: "Azul hielo" }[color]} aria-label={`${color} ${device.name}`} onClick={() => update(device.id, { color })}>{device.color === color && <Check />}</Button>)}</div><span className="mode-label">Color fijo <ChevronRight size={13} /></span></div>
           </article>)}
           <Button variant="ghost" className="add-device-card" onClick={() => openModal("device")}><span className="add-circle"><Plus size={22} /></span><span>Añadir dispositivo</span><small>Una nueva luz para tu espacio</small></Button>
-        </div> : <div className="group-grid">{groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase())).map((group, i) => <article className="group-card" key={`${group.name}-${i}`}><div className="group-icon"><Layers /></div><h2>{group.name}</h2><p>{group.ids.length} tubos LED</p><div className="group-members">{devices.filter(d => group.ids.includes(d.id)).map(d => <span key={d.id}>{d.name}</span>)}</div><Button variant="secondary" onClick={() => { const on = !devices.some(d => group.ids.includes(d.id) && d.on); setDevices(ds => ds.map(d => group.ids.includes(d.id) ? { ...d, on } : d)); }}><Power />{devices.some(d => group.ids.includes(d.id) && d.on) ? "Apagar grupo" : "Encender grupo"}</Button></article>)}<Button variant="ghost" className="add-device-card" onClick={() => openModal("group")}><span className="add-circle"><Plus /></span>Añadir grupo</Button></div>}
+        </div> : <div className="group-grid">{groups.map((group, i) => ({ group, i })).filter(({ group }) => group.name.toLowerCase().includes(search.toLowerCase())).map(({ group, i }) => <article className="group-card" key={`${group.name}-${i}`} onClick={e => { if (!(e.target instanceof Element) || !e.target.closest("button")) setControlGroupIndex(i); }}><Button variant="ghost" className="group-open" aria-label={`Abrir controles del grupo ${group.name}`} onClick={() => setControlGroupIndex(i)}><span className="group-icon"><Layers /></span><h2>{group.name}</h2></Button><p>{group.ids.length} tubos LED</p><div className="group-members">{devices.filter(d => group.ids.includes(d.id)).map(d => <span key={d.id}>{d.name}</span>)}</div><Button variant="secondary" onClick={() => { const on = !devices.some(d => group.ids.includes(d.id) && d.on); setDevices(ds => ds.map(d => group.ids.includes(d.id) ? { ...d, on } : d)); }}><Power />{devices.some(d => group.ids.includes(d.id) && d.on) ? "Apagar grupo" : "Encender grupo"}</Button></article>)}<Button variant="ghost" className="add-device-card" onClick={() => openModal("group")}><span className="add-circle"><Plus /></span>Añadir grupo</Button></div>}
         <div className="bottom-summary"><span><Radio size={15} />Tu espacio está sincronizado</span><Button variant="ghost" className="all-off" onClick={() => setDevices(ds => ds.map(d => ({ ...d, on: active === 0 })))}><Power />{active ? "Apagar todo" : "Encender todo"}<ArrowUpRight /></Button></div>
       </> : <section className="files-section"><div className="files-heading"><h2>Biblioteca <span className="tab-count">{files.length}</span></h2><Button onClick={() => inputRef.current?.click()}><Plus />Importar archivo</Button></div><input type="file" multiple hidden ref={inputRef} onChange={e => { const imported = Array.from(e.target.files ?? []).map(f => ({ name: f.name, size: f.size, url: URL.createObjectURL(f) })); setFiles(fs => [...fs, ...imported]); e.target.value = ""; }} />{files.length ? files.map((file, i) => <div className="file-row" key={i}><File /><div><strong>{file.name}</strong><small>{Math.max(1, Math.round(file.size / 1024))} KB</small></div><Button variant="ghost" size="icon" asChild><a href={file.url} download={file.name} aria-label={`Descargar ${file.name}`}><ArrowDownToLine /></a></Button></div>) : <div className="empty-files"><Folder size={44} /><h3>Tu biblioteca está lista</h3><p>Aún no hay archivos.</p></div>}</section>}
     </main>
@@ -97,5 +115,6 @@ function Index() {
 
     {modal && <div className="modal-overlay" onClick={() => setModal(null)}><section role="dialog" aria-modal="true" aria-labelledby="modal-title" className="add-modal" onClick={e => e.stopPropagation()}><div className="modal-heading"><h2 id="modal-title">{modal === "device" ? "Añadir dispositivo demo" : "Crear grupo"}</h2><Button variant="ghost" size="icon" aria-label="Cerrar" onClick={() => setModal(null)}><X /></Button></div><p>{modal === "device" ? "Este tubo es una simulación, no una conexión física." : "Reúne tus tubos en un mismo espacio."}</p><label htmlFor="element-name">Nombre</label><input id="element-name" autoFocus className="text-input" placeholder={modal === "device" ? "Tubo LED 05" : "Nombre del grupo"} value={name} onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") add(); }} />{modal === "group" && <div className="group-options">{devices.map(d => <label key={d.id}><input type="checkbox" checked={selected.includes(d.id)} onChange={e => setSelected(ids => e.target.checked ? [...ids, d.id] : ids.filter(id => id !== d.id))} />{d.name}</label>)}</div>}<Button className="w-full" disabled={!name.trim() || (modal === "group" && !selected.length)} onClick={add}><Plus />{modal === "device" ? "Añadir tubo" : "Crear grupo"}</Button></section></div>}
     {controlDevice && <TubeControls key={controlDevice.id} device={controlDevice} settings={currentSettings} presets={presets[controlDevice.id] ?? {}} onClose={() => setControlId(null)} onChange={changes => setTubeSettings(all => ({ ...all, [controlDevice.id]: { ...(all[controlDevice.id] ?? defaultTubeSettings), ...changes } }))} onDeviceChange={changes => update(controlDevice.id, changes)} onSave={slot => setPresets(all => ({ ...all, [controlDevice.id]: { ...all[controlDevice.id], [slot]: { settings: { ...currentSettings }, brightness: controlDevice.brightness } } }))} onRecall={preset => { setTubeSettings(all => ({ ...all, [controlDevice.id]: { ...preset.settings } })); update(controlDevice.id, { brightness: preset.brightness }); }} />}
+    {controlGroup && firstGroupDevice && controlGroupIndex !== null && <TubeControls key={`group-${controlGroupIndex}`} scope="group" device={{ name: controlGroup.name, room: `${groupDevices.length} tubos LED`, brightness: firstGroupDevice.brightness, on: groupDevices.some(d => d.on) }} settings={groupSettings} presets={groupPresets[controlGroupIndex] ?? {}} onClose={() => setControlGroupIndex(null)} onChange={changeGroupSettings} onDeviceChange={changeGroupDevices} onSave={slot => setGroupPresets(all => ({ ...all, [controlGroupIndex]: { ...all[controlGroupIndex], [slot]: { settings: { ...groupSettings }, brightness: firstGroupDevice.brightness } } }))} onRecall={preset => { changeGroupSettings(preset.settings); changeGroupDevices({ brightness: preset.brightness }); }} />}
   </div>;
 }

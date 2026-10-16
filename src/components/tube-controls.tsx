@@ -21,8 +21,9 @@ function Adjustment({ label, value, min, max, step = 1, unit = "", tone = "", on
   </div>;
 }
 
-export function TubeControls({ device, settings, presets, onClose, onChange, onDeviceChange, onSave, onRecall }: {
+export function TubeControls({ device, scope = "tube", settings, presets, onClose, onChange, onDeviceChange, onSave, onRecall }: {
   device: { name: string; room: string; brightness: number; on: boolean };
+  scope?: "tube" | "group";
   settings: TubeSettings;
   presets: Partial<Record<1 | 2, TubePreset>>;
   onClose: () => void;
@@ -38,7 +39,7 @@ export function TubeControls({ device, settings, presets, onClose, onChange, onD
   return <Dialog.Root open onOpenChange={open => { if (!open) onClose(); }}><Dialog.Portal>
     <Dialog.Overlay className="tube-control-overlay" />
     <Dialog.Content className="tube-control-window">
-      <header className="tube-control-header"><div><Dialog.Title>{device.name}</Dialog.Title><Dialog.Description>{device.room} · Tubo LED demo</Dialog.Description></div><Button variant="ghost" size="icon" aria-label="Cerrar controles" title="Cerrar" onClick={onClose}><X /></Button></header>
+      <header className="tube-control-header"><div><Dialog.Title>{device.name}</Dialog.Title><Dialog.Description>{device.room} · {scope === "group" ? "Grupo LED demo" : "Tubo LED demo"}</Dialog.Description></div><Button variant="ghost" size="icon" aria-label="Cerrar controles" title="Cerrar" onClick={onClose}><X /></Button></header>
       <div className="control-modes" role="tablist" aria-label="Modo de iluminación">{(["CCT", "HSI", "RGB", "FX"] as const).map(mode => <Button key={mode} variant="ghost" role="tab" id={`mode-${mode}`} aria-controls="tube-mode-panel" aria-selected={settings.mode === mode} className={settings.mode === mode ? "mode-active" : ""} onClick={() => change({ mode })}>{mode}</Button>)}</div>
       <div className="tube-control-body">
         <section id="tube-mode-panel" role="tabpanel" aria-labelledby={`mode-${settings.mode}`} className="mode-panel">
@@ -52,7 +53,7 @@ export function TubeControls({ device, settings, presets, onClose, onChange, onD
         <section className="tube-effects" aria-label="Efectos"><div className="control-section-title"><Thermometer size={15} /><span>Efectos</span></div><div className="tube-effect-grid">{effects.map(({ name, Icon }) => <Button key={name} variant="outline" className={`tube-effect ${settings.effect === name ? "effect-active" : ""}`} aria-pressed={settings.effect === name} onClick={() => change({ effect: settings.effect === name ? null : name })}><Icon /><span>{name}</span>{settings.effect === name && <Check className="effect-check" />}</Button>)}</div></section>
       </div>
       <footer className="tube-control-footer">
-        <Button variant={device.on ? "default" : "outline"} size="icon" title={device.on ? "Apagar tubo" : "Encender tubo"} aria-label={device.on ? "Apagar tubo" : "Encender tubo"} aria-pressed={device.on} onClick={() => deviceChange({ on: !device.on })}><Power /></Button>
+        <Button variant={device.on ? "default" : "outline"} size="icon" title={`${device.on ? "Apagar" : "Encender"} ${scope === "group" ? "grupo" : "tubo"}`} aria-label={`${device.on ? "Apagar" : "Encender"} ${scope === "group" ? "grupo" : "tubo"}`} aria-pressed={device.on} onClick={() => deviceChange({ on: !device.on })}><Power /></Button>
         <div className="preset-buttons" role="group" aria-label="Memorias">{([1, 2] as const).map(number => <Button key={number} variant={slot === number ? "secondary" : "ghost"} size="icon" aria-pressed={slot === number} aria-label={`Memoria ${number}`} title={`Memoria ${number}${presets[number] ? " · guardada" : " · vacía"}`} onClick={() => { setSlot(number); setSaved(false); const preset = presets[number]; if (preset) onRecall(preset); }}>{number}{presets[number] && <span className="preset-dot" />}</Button>)}</div>
         <Button variant="ghost" size="icon" className={settings.favorite ? "favorite-active" : ""} title="Favoritos" aria-label="Favoritos" aria-pressed={settings.favorite} onClick={() => change({ favorite: !settings.favorite })}><Star fill={settings.favorite ? "currentColor" : "none"} /></Button>
         <Button className="control-save" onClick={() => { onSave(slot); setSaved(true); }}>{saved ? <Check /> : <Save />}{saved ? "Guardado" : "Guardar"}</Button>
