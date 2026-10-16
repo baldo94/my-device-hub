@@ -4,5 +4,5 @@
 - [x] Comprobar interacción y presentación.
 
 # Controles de grupos
-- [ ] Abrir los mismos controles desde cada grupo y aplicar los cambios a sus tubos.
-- [ ] Comprobar efectos, ajustes y memorias de grupo sin afectar a otros tubos.
+- [x] Abrir los mismos controles desde cada grupo y aplicar los cambios a sus tubos.
+- [x] Comprobar efectos, ajustes y memorias de grupo sin afectar a otros tubos.
