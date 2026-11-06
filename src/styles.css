@@ -324,6 +324,17 @@ h2 { font-family: var(--font-heading); font-size: 15px; font-weight: 600; margin
 .control-slider-row input::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--foreground); border: 3px solid var(--background); outline: 1px solid var(--border); }
 .temperature-control input { background: var(--control-temperature-track); }
 .gm-control input { background: var(--control-gm-track); }
+/* Light-color data, independent of the interface theme. */
+.mode-panel {
+  --control-hsi-brightness-track: linear-gradient(90deg, hsl(var(--hsi-hue) var(--hsi-saturation) 0%), hsl(var(--hsi-hue) var(--hsi-saturation) 50%));
+  --control-hsi-hue-track: linear-gradient(90deg, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));
+  --control-hsi-saturation-track: linear-gradient(90deg, hsl(var(--hsi-hue) 0% 50%), hsl(var(--hsi-hue) 100% 50%));
+}
+.hsi-brightness-control input { background: var(--control-hsi-brightness-track); }
+.hsi-hue-control input { background: var(--control-hsi-hue-track); }
+.hsi-saturation-control input { background: var(--control-hsi-saturation-track); }
+.control-slider-row input::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--foreground); border: 3px solid var(--background); outline: 1px solid var(--border); }
+.control-slider-row input:focus-visible { outline: 2px solid var(--ring); outline-offset: 5px; }
 .control-range { display: flex; justify-content: space-between; padding: 5px 46px 0; font-size: 9px; color: var(--muted-foreground); }
 .tube-effects { border-top: 1px solid var(--border); padding-top: 18px; }
 .tube-effects .control-section-title { margin-bottom: 12px; }
