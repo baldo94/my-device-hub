@@ -405,3 +405,7 @@ h2 { font-family: var(--font-heading); font-size: 15px; font-weight: 600; margin
 .song-queue-icon { color: var(--muted-foreground); }
 .song-next { margin: 0 1.25rem 1.25rem; color: var(--primary); justify-content: center; overflow: hidden; }
 .file-row.is-song { cursor: pointer; }
+.song-zoom { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; padding: 0 1.25rem; color: var(--muted-foreground); font-size: .8rem; }
+.song-wave-scroll { overflow-x: auto; margin: 0 1.25rem; }
+.song-wave-scroll .song-wave { margin: 0; gap: 0; }
+.song-wave-scroll .song-wave > span:not(.song-marker):not(.song-playhead):not(.song-loop-zone) { margin-right: 1px; }
