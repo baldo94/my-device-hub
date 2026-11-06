@@ -383,3 +383,25 @@ h2 { font-family: var(--font-heading); font-size: 15px; font-weight: 600; margin
   .hsi-wheel { width: min(170px, 100%); }
   .hsi-picker { margin-bottom: 18px; gap: 9px; }
 }
+
+/* Song player */
+.song-player { gap: 1rem; }
+.song-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw; }
+.song-loop-row { display: flex; align-items: center; gap: .6rem; padding: .75rem 1.25rem; border-block: 1px solid var(--border); }
+.song-loop-row strong { margin-right: auto; }
+.song-loop-info { color: var(--muted-foreground); font-size: .8rem; min-width: 5.5rem; text-align: center; }
+.song-wave { position: relative; height: 180px; margin: 0 1.25rem; display: flex; align-items: center; gap: 1px; cursor: pointer; }
+.song-wave > span:not(.song-marker):not(.song-playhead):not(.song-loop-zone) { flex: 1; background: color-mix(in oklch, var(--primary) 35%, transparent); border-radius: 2px; }
+.song-wave > span.played { background: var(--primary) !important; }
+.song-loop-zone { position: absolute; inset-block: 0; background: color-mix(in oklch, var(--primary) 15%, transparent); pointer-events: none; }
+.song-marker { position: absolute; inset-block: 0; width: 2px; background: var(--primary); pointer-events: none; }
+.song-marker b { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--background); border: 2px solid var(--primary); color: var(--primary); font-size: .8rem; }
+.song-playhead { position: absolute; inset-block: 0; width: 2px; background: var(--foreground); pointer-events: none; }
+.song-progress { display: flex; align-items: center; gap: .75rem; padding: 0 1.25rem; font-variant-numeric: tabular-nums; }
+.song-progress input { flex: 1; accent-color: var(--primary); }
+.song-transport { display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem; }
+.song-play { width: 3.5rem; height: 3.5rem; border-radius: 50%; }
+.song-play svg { width: 1.6rem; height: 1.6rem; }
+.song-queue-icon { color: var(--muted-foreground); }
+.song-next { margin: 0 1.25rem 1.25rem; color: var(--primary); justify-content: center; overflow: hidden; }
+.file-row.is-song { cursor: pointer; }
