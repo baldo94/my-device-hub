@@ -61,6 +61,7 @@ export function Index() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [playing, setPlaying] = useState<number | null>(null);
   const [files, setFiles] = useState<{ name: string; size: number; url: string }[]>([]);
+  const songs = files.filter(f => isAudio(f.name));
   const inputRef = useRef<HTMLInputElement>(null);
   const active = devices.filter(d => d.on).length;
   const update = (id: number, changes: Partial<Device>) => setDevices(ds => ds.map(d => d.id === id ? { ...d, ...changes } : d));
