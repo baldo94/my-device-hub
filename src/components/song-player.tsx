@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { FastForward, ListMusic, ZoomIn, ZoomOut, Pause, Play, Rewind, Shuffle, SkipBack, SkipForward, X } from "lucide-react";
+import { Bookmark, FastForward, ListMusic, ZoomIn, ZoomOut, Pause, Play, Rewind, Shuffle, SkipBack, SkipForward, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+export type SongMarker = { id: number; time: number; effect: string | null; color: string | null };
+const EFFECTS = ["Paparazzi", "Vela", "Curva ascendente", "Curva descendente"];
 export type Song = { name: string; size: number; url: string };
 const BARS = 600;
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 export const isAudio = (name: string) => /\.(mp3|wav|m4a|aac|ogg|flac|opus|webm)$/i.test(name);
 
-export function SongPlayer({ songs, index, onSelect, onClose }: { songs: Song[]; index: number; onSelect: (i: number) => void; onClose: () => void }) {
+export function SongPlayer({ songs, index, onSelect, onClose, markers, onMarkersChange, onCue }: { songs: Song[]; index: number; onSelect: (i: number) => void; onClose: () => void; markers: SongMarker[]; onMarkersChange: (m: SongMarker[]) => void; onCue: (m: SongMarker) => void }) {
+  const [kind, setKind] = useState<string>("color");
+  const [pickColor, setPickColor] = useState("#ff3366");
+  const lastTime = useRef(0);
   const song = songs[index]!;
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -39,8 +44,12 @@ export function SongPlayer({ songs, index, onSelect, onClose }: { songs: Song[];
   const onTime = () => {
     const a = audio.current; if (!a) return;
     if (loopA !== null && loopB !== null && a.currentTime >= loopB) a.currentTime = loopA;
-    setTime(a.currentTime);
+    const t = a.currentTime;
+    if (t > lastTime.current && t - lastTime.current < 1.5) markers.filter(m => m.time > lastTime.current && m.time <= t).forEach(onCue);
+    lastTime.current = t;
+    setTime(t);
   };
+  const addMarker = () => onMarkersChange([...markers, { id: Date.now(), time, effect: kind === "color" ? null : kind, color: kind === "color" ? pickColor : null }].sort((a, b) => a.time - b.time));
   useEffect(() => { const el = scroller.current; if (!el || !duration) return; const x = (time / duration) * el.scrollWidth; if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - 20) el.scrollLeft = x - el.clientWidth / 3; }, [time, duration, zoom]);
   const pct = (t: number | null) => (t === null || !duration ? 0 : (t / duration) * 100);
   const upNext = songs[(index + 1) % songs.length]!;
@@ -62,8 +71,15 @@ export function SongPlayer({ songs, index, onSelect, onClose }: { songs: Song[];
         {loopA !== null && loopB !== null && <span className="song-loop-zone" style={{ left: `${pct(loopA)}%`, width: `${pct(loopB) - pct(loopA)}%` }} />}
         {loopA !== null && <span className="song-marker" style={{ left: `${pct(loopA)}%` }}><b>A</b></span>}
         {loopB !== null && <span className="song-marker" style={{ left: `${pct(loopB)}%` }}><b>B</b></span>}
+        {markers.map(m => <span key={m.id} className="song-cue" title={`${fmt(m.time)} · ${m.effect ?? m.color}`} style={{ left: `${pct(m.time)}%`, background: m.color ?? undefined }} />)}
         <span className="song-playhead" style={{ left: `${pct(time)}%` }} />
       </div></div>
+      <div className="song-marker-row"><Bookmark size={16} /><strong>Marcador</strong>
+        <select aria-label="Tipo de marcador" value={kind} onChange={e => setKind(e.target.value)}><option value="color">Color</option>{EFFECTS.map(e => <option key={e} value={e}>{e}</option>)}</select>
+        {kind === "color" && <input aria-label="Color del marcador" type="color" value={pickColor} onChange={e => setPickColor(e.target.value)} />}
+        <Button size="sm" onClick={addMarker}>Añadir en {fmt(time)}</Button>
+      </div>
+      {markers.length > 0 && <div className="song-marker-list">{markers.map(m => <span key={m.id} className="song-marker-chip"><button type="button" onClick={() => seek(m.time)}>{m.color && <i style={{ background: m.color }} />}{fmt(m.time)} · {m.effect ?? "Color"}</button><button type="button" aria-label={`Quitar marcador ${fmt(m.time)}`} onClick={() => onMarkersChange(markers.filter(x => x.id !== m.id))}><X size={12} /></button></span>)}</div>}
       <div className="song-progress"><span>{fmt(time)}</span><input aria-label="Posición" type="range" min={0} max={duration || 0} step={0.1} value={time} onChange={e => seek(Number(e.target.value))} /><span>{fmt(duration)}</span></div>
       <div className="song-transport">
         <Button size="icon" variant={shuffle ? "default" : "ghost"} aria-label="Aleatorio" aria-pressed={shuffle} onClick={() => setShuffle(s => !s)}><Shuffle /></Button>
