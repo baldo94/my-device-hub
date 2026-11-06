@@ -16,7 +16,7 @@ describe("HSI color wheel", () => {
   it("appears only in HSI mode and its arrows drive tone and saturation", () => {
     render(<Index />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir controles de Tubo LED 01" }));
-    expect(wheel()).not.toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: "Círculo de color" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "HSI" }));
     fireEvent.keyDown(wheel(), { key: "ArrowRight" });
     expect(screen.getByRole("slider", { name: "Tono" })).toHaveValue("151");
