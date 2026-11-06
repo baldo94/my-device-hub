@@ -9,7 +9,7 @@ const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).p
 export const isAudio = (name: string) => /\.(mp3|wav|m4a|aac|ogg|flac|opus|webm)$/i.test(name);
 
 export function SongPlayer({ songs, index, onSelect, onClose }: { songs: Song[]; index: number; onSelect: (i: number) => void; onClose: () => void }) {
-  const song = songs[index];
+  const song = songs[index]!;
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
@@ -24,7 +24,7 @@ export function SongPlayer({ songs, index, onSelect, onClose }: { songs: Song[];
     let cancelled = false;
     fetch(song.url).then(r => r.arrayBuffer()).then(buf => new AudioContext().decodeAudioData(buf)).then(data => {
       const ch = data.getChannelData(0); const size = Math.floor(ch.length / BARS); const out: number[] = [];
-      for (let i = 0; i < BARS; i++) { let max = 0; for (let j = i * size; j < (i + 1) * size; j += 50) max = Math.max(max, Math.abs(ch[j])); out.push(max); }
+      for (let i = 0; i < BARS; i++) { let max = 0; for (let j = i * size; j < (i + 1) * size; j += 50) max = Math.max(max, Math.abs(ch[j] ?? 0)); out.push(max); }
       const top = Math.max(...out, 0.01); if (!cancelled) setPeaks(out.map(p => p / top));
     }).catch(() => {});
     return () => { cancelled = true; };
@@ -40,7 +40,7 @@ export function SongPlayer({ songs, index, onSelect, onClose }: { songs: Song[];
     setTime(a.currentTime);
   };
   const pct = (t: number | null) => (t === null || !duration ? 0 : (t / duration) * 100);
-  const upNext = songs[(index + 1) % songs.length];
+  const upNext = songs[(index + 1) % songs.length]!;
 
   return <Dialog.Root open onOpenChange={o => { if (!o) onClose(); }}><Dialog.Portal>
     <Dialog.Overlay className="tube-control-overlay" />
