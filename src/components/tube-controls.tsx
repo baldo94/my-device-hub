@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Camera, Check, Flame, Minus, Plus, Power, Save, Star, Sun, Thermometer, TrendingDown, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,39 @@ function Adjustment({ label, value, min, max, step = 1, unit = "", tone = "", on
       <Button variant="outline" size="icon" aria-label={`Aumentar ${label}`} title={`Aumentar ${label}`} disabled={value >= max} onClick={() => clamp(value + step)}><Plus /></Button>
     </div>
     <div className="control-range"><span>{min}{unit}</span><span>{max}{unit}</span></div>
+  </div>;
+}
+
+function ColorWheel({ hue, saturation, onChange }: { hue: number; saturation: number; onChange: (changes: Partial<TubeSettings>) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+  const angle = (hue * Math.PI) / 180;
+  const reach = saturation / 100;
+  const color = `hsl(${Math.round(hue)} ${Math.round(saturation)}% 50%)`;
+  const pick = (clientX: number, clientY: number) => {
+    const box = ref.current?.getBoundingClientRect();
+    const radius = box ? box.width / 2 : 0;
+    if (!box || !radius) return;
+    const x = (clientX - (box.left + radius)) / radius;
+    const y = (clientY - (box.top + radius)) / radius;
+    onChange({ hue: Math.round((Math.atan2(x, -y) * 180) / Math.PI + 360) % 360, saturation: Math.round(Math.min(1, Math.hypot(x, y)) * 100) });
+  };
+  const key = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = event.shiftKey ? 10 : 1;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); onChange({ hue: (hue + (event.key === "ArrowRight" ? step : -step) + 360) % 360 }); }
+    else if (event.key === "ArrowUp" || event.key === "ArrowDown") { event.preventDefault(); onChange({ saturation: Math.min(100, Math.max(0, saturation + (event.key === "ArrowUp" ? step : -step))) }); }
+    else if (event.key === "Home") { event.preventDefault(); onChange({ hue: 0, saturation: 100 }); }
+  };
+  return <div className="hsi-picker">
+    <div ref={ref} className="hsi-wheel" role="slider" tabIndex={0} aria-label="Círculo de color" aria-valuemin={0} aria-valuemax={359} aria-valuenow={Math.round(hue)} aria-valuetext={`Tono ${Math.round(hue)} grados, saturación ${Math.round(saturation)}%`} onKeyDown={key}
+      onPointerDown={e => { dragging.current = true; e.currentTarget.setPointerCapture(e.pointerId); pick(e.clientX, e.clientY); }}
+      onPointerMove={e => { if (dragging.current) pick(e.clientX, e.clientY); }}
+      onPointerUp={() => { dragging.current = false; }} onPointerCancel={() => { dragging.current = false; }}>
+      <span className="hsi-wheel-face" />
+      <span className="hsi-wheel-marker" style={{ background: color, left: `${50 + 50 * reach * Math.sin(angle)}%`, top: `${50 - 50 * reach * Math.cos(angle)}%` }} />
+    </div>
+    <div className="hsi-preview"><span className="hsi-preview-swatch" style={{ background: color }} /><span>Color elegido</span><strong>{Math.round(hue)}° · {Math.round(saturation)}%</strong></div>
+    <p className="hsi-hint">Toca o arrastra el círculo para elegir el color de la luz.</p>
   </div>;
 }
 
@@ -46,7 +79,7 @@ export function TubeControls({ device, scope = "tube", settings, presets, onClos
           <div className="control-section-title"><Sun size={15} /><span>{settings.mode === "CCT" ? "Luz blanca" : settings.mode === "HSI" ? "Tono y saturación" : settings.mode === "RGB" ? "Mezcla de color" : "Efectos de luz"}</span><span className="control-live"><span className="status-dot" />{device.on ? "Encendido" : "Apagado"}</span></div>
           <Adjustment label="Brillo" value={device.brightness} min={0} max={100} unit="%" onChange={brightness => deviceChange({ brightness })} />
           {settings.mode === "CCT" && <><Adjustment label="CCT" value={settings.cct} min={2700} max={10000} step={100} unit=" K" tone="temperature-control" onChange={cct => change({ cct })} /><Adjustment label="GM" value={settings.gm} min={-100} max={100} tone="gm-control" onChange={gm => change({ gm })} /></>}
-          {settings.mode === "HSI" && <><Adjustment label="Tono" value={settings.hue} min={0} max={360} unit="°" onChange={hue => change({ hue })} /><Adjustment label="Saturación" value={settings.saturation} min={0} max={100} unit="%" onChange={saturation => change({ saturation })} /></>}
+          {settings.mode === "HSI" && <><ColorWheel hue={settings.hue} saturation={settings.saturation} onChange={change} /><Adjustment label="Tono" value={settings.hue} min={0} max={360} unit="°" onChange={hue => change({ hue })} /><Adjustment label="Saturación" value={settings.saturation} min={0} max={100} unit="%" onChange={saturation => change({ saturation })} /></>}
           {settings.mode === "RGB" && <>{([['red', 'Rojo'], ['green', 'Verde'], ['blue', 'Azul']] as const).map(([key, label]) => <Adjustment key={key} label={label} value={settings[key]} min={0} max={255} onChange={value => change({ [key]: value })} />)}</>}
           {settings.mode === "FX" && <div className="active-effect"><Flame size={24} /><span>{settings.effect ?? "Sin efecto"}</span></div>}
         </section>
