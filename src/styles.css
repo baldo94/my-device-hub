@@ -329,11 +329,14 @@ h2 { font-family: var(--font-heading); font-size: 15px; font-weight: 600; margin
   --control-hsi-brightness-track: linear-gradient(90deg, hsl(var(--hsi-hue) var(--hsi-saturation) 0%), hsl(var(--hsi-hue) var(--hsi-saturation) 50%));
   --control-hsi-hue-track: linear-gradient(90deg, hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));
   --control-hsi-saturation-track: linear-gradient(90deg, hsl(var(--hsi-hue) 0% 50%), hsl(var(--hsi-hue) 100% 50%));
+  --control-rgb-red-track: linear-gradient(90deg, rgb(0 0 0), rgb(255 0 0));
+  --control-rgb-green-track: linear-gradient(90deg, rgb(0 0 0), rgb(0 255 0));
+  --control-rgb-blue-track: linear-gradient(90deg, rgb(0 0 0), rgb(0 0 255));
 }
 .hsi-brightness-control input { background: var(--control-hsi-brightness-track); }
 .hsi-hue-control input { background: var(--control-hsi-hue-track); }
 .hsi-saturation-control input { background: var(--control-hsi-saturation-track); }
-/* Each channel slider runs from that channel off to full, at the other channels' current levels. */
+/* Each channel slider runs from off to full in its own colour. */
 .rgb-red-control input { background: var(--control-rgb-red-track, var(--secondary)); }
 .rgb-green-control input { background: var(--control-rgb-green-track, var(--secondary)); }
 .rgb-blue-control input { background: var(--control-rgb-blue-track, var(--secondary)); }
