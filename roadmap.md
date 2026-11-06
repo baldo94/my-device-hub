@@ -10,3 +10,7 @@
 # Círculo de color en HSI
 - [x] Añadir un círculo de color que elige tono y saturación al tocar, arrastrar o con el teclado.
 - [x] Comprobar el círculo en un tubo, en un grupo y al guardar/recuperar memorias.
+
+# Deslizadores de color en RGB
+- [x] Pintar cada deslizador (Rojo, Verde, Azul) con el degradado del color resultante al subir ese canal.
+- [x] Comprobar que los degradados siguen los demás canales y que todo el juego de pruebas pasa.
