@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Camera, Check, Flame, Minus, Plus, Power, Save, Star, Sun, Thermometer, TrendingDown, TrendingUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,11 +75,11 @@ export function TubeControls({ device, scope = "tube", settings, presets, onClos
       <header className="tube-control-header"><div><Dialog.Title>{device.name}</Dialog.Title><Dialog.Description>{device.room} · {scope === "group" ? "Grupo LED demo" : "Tubo LED demo"}</Dialog.Description></div><Button variant="ghost" size="icon" aria-label="Cerrar controles" title="Cerrar" onClick={onClose}><X /></Button></header>
       <div className="control-modes" role="tablist" aria-label="Modo de iluminación">{(["CCT", "HSI", "RGB", "FX"] as const).map(mode => <Button key={mode} variant="ghost" role="tab" id={`mode-${mode}`} aria-controls="tube-mode-panel" aria-selected={settings.mode === mode} className={settings.mode === mode ? "mode-active" : ""} onClick={() => change({ mode })}>{mode}</Button>)}</div>
       <div className="tube-control-body">
-        <section id="tube-mode-panel" role="tabpanel" aria-labelledby={`mode-${settings.mode}`} className="mode-panel">
+        <section id="tube-mode-panel" role="tabpanel" aria-labelledby={`mode-${settings.mode}`} className="mode-panel" style={{ "--hsi-hue": settings.hue, "--hsi-saturation": `${settings.saturation}%` } as CSSProperties}>
           <div className="control-section-title"><Sun size={15} /><span>{settings.mode === "CCT" ? "Luz blanca" : settings.mode === "HSI" ? "Tono y saturación" : settings.mode === "RGB" ? "Mezcla de color" : "Efectos de luz"}</span><span className="control-live"><span className="status-dot" />{device.on ? "Encendido" : "Apagado"}</span></div>
-          <Adjustment label="Brillo" value={device.brightness} min={0} max={100} unit="%" onChange={brightness => deviceChange({ brightness })} />
+          <Adjustment label="Brillo" value={device.brightness} min={0} max={100} unit="%" tone={settings.mode === "HSI" ? "hsi-brightness-control" : ""} onChange={brightness => deviceChange({ brightness })} />
           {settings.mode === "CCT" && <><Adjustment label="CCT" value={settings.cct} min={2700} max={10000} step={100} unit=" K" tone="temperature-control" onChange={cct => change({ cct })} /><Adjustment label="GM" value={settings.gm} min={-100} max={100} tone="gm-control" onChange={gm => change({ gm })} /></>}
-          {settings.mode === "HSI" && <><ColorWheel hue={settings.hue} saturation={settings.saturation} onChange={change} /><Adjustment label="Tono" value={settings.hue} min={0} max={360} unit="°" onChange={hue => change({ hue })} /><Adjustment label="Saturación" value={settings.saturation} min={0} max={100} unit="%" onChange={saturation => change({ saturation })} /></>}
+          {settings.mode === "HSI" && <><ColorWheel hue={settings.hue} saturation={settings.saturation} onChange={change} /><Adjustment label="Tono" value={settings.hue} min={0} max={360} unit="°" tone="hsi-hue-control" onChange={hue => change({ hue })} /><Adjustment label="Saturación" value={settings.saturation} min={0} max={100} unit="%" tone="hsi-saturation-control" onChange={saturation => change({ saturation })} /></>}
           {settings.mode === "RGB" && <>{([['red', 'Rojo'], ['green', 'Verde'], ['blue', 'Azul']] as const).map(([key, label]) => <Adjustment key={key} label={label} value={settings[key]} min={0} max={255} onChange={value => change({ [key]: value })} />)}</>}
           {settings.mode === "FX" && <div className="active-effect"><Flame size={24} /><span>{settings.effect ?? "Sin efecto"}</span></div>}
         </section>
