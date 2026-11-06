@@ -12,5 +12,5 @@
 - [x] Comprobar el círculo en un tubo, en un grupo y al guardar/recuperar memorias.
 
 # Deslizadores de color en RGB
-- [x] Pintar cada deslizador (Rojo, Verde, Azul) con el degradado del color resultante al subir ese canal.
-- [x] Comprobar que los degradados siguen los demás canales y que todo el juego de pruebas pasa.
+- [x] Pintar cada deslizador con el degradado de su propio color: Rojo de negro a rojo, Verde de negro a verde, Azul de negro a azul.
+- [x] Comprobar en la vista previa que cada deslizador se ve del color de su canal.
