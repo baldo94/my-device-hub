@@ -67,6 +67,11 @@ export function TubeControls({ device, scope = "tube", settings, presets, onClos
 }) {
   const [slot, setSlot] = useState<1 | 2>(1);
   const [saved, setSaved] = useState(false);
+  const rgbTracks = {
+    "--control-rgb-red-track": `linear-gradient(90deg, rgb(0 ${settings.green} ${settings.blue}), rgb(255 ${settings.green} ${settings.blue}))`,
+    "--control-rgb-green-track": `linear-gradient(90deg, rgb(${settings.red} 0 ${settings.blue}), rgb(${settings.red} 255 ${settings.blue}))`,
+    "--control-rgb-blue-track": `linear-gradient(90deg, rgb(${settings.red} ${settings.green} 0), rgb(${settings.red} ${settings.green} 255))`,
+  };
   const change = (changes: Partial<TubeSettings>) => { setSaved(false); onChange(changes); };
   const deviceChange = (changes: { brightness?: number; on?: boolean }) => { setSaved(false); onDeviceChange(changes); };
   return <Dialog.Root open onOpenChange={open => { if (!open) onClose(); }}><Dialog.Portal>
@@ -75,12 +80,12 @@ export function TubeControls({ device, scope = "tube", settings, presets, onClos
       <header className="tube-control-header"><div><Dialog.Title>{device.name}</Dialog.Title><Dialog.Description>{device.room} · {scope === "group" ? "Grupo LED demo" : "Tubo LED demo"}</Dialog.Description></div><Button variant="ghost" size="icon" aria-label="Cerrar controles" title="Cerrar" onClick={onClose}><X /></Button></header>
       <div className="control-modes" role="tablist" aria-label="Modo de iluminación">{(["CCT", "HSI", "RGB", "FX"] as const).map(mode => <Button key={mode} variant="ghost" role="tab" id={`mode-${mode}`} aria-controls="tube-mode-panel" aria-selected={settings.mode === mode} className={settings.mode === mode ? "mode-active" : ""} onClick={() => change({ mode })}>{mode}</Button>)}</div>
       <div className="tube-control-body">
-        <section id="tube-mode-panel" role="tabpanel" aria-labelledby={`mode-${settings.mode}`} className="mode-panel" style={{ "--hsi-hue": settings.hue, "--hsi-saturation": `${settings.saturation}%` } as CSSProperties}>
+        <section id="tube-mode-panel" role="tabpanel" aria-labelledby={`mode-${settings.mode}`} className="mode-panel" style={{ "--hsi-hue": settings.hue, "--hsi-saturation": `${settings.saturation}%`, ...rgbTracks } as CSSProperties}>
           <div className="control-section-title"><Sun size={15} /><span>{settings.mode === "CCT" ? "Luz blanca" : settings.mode === "HSI" ? "Tono y saturación" : settings.mode === "RGB" ? "Mezcla de color" : "Efectos de luz"}</span><span className="control-live"><span className="status-dot" />{device.on ? "Encendido" : "Apagado"}</span></div>
           <Adjustment label="Brillo" value={device.brightness} min={0} max={100} unit="%" tone={settings.mode === "HSI" ? "hsi-brightness-control" : ""} onChange={brightness => deviceChange({ brightness })} />
           {settings.mode === "CCT" && <><Adjustment label="CCT" value={settings.cct} min={2700} max={10000} step={100} unit=" K" tone="temperature-control" onChange={cct => change({ cct })} /><Adjustment label="GM" value={settings.gm} min={-100} max={100} tone="gm-control" onChange={gm => change({ gm })} /></>}
           {settings.mode === "HSI" && <><ColorWheel hue={settings.hue} saturation={settings.saturation} onChange={change} /><Adjustment label="Tono" value={settings.hue} min={0} max={360} unit="°" tone="hsi-hue-control" onChange={hue => change({ hue })} /><Adjustment label="Saturación" value={settings.saturation} min={0} max={100} unit="%" tone="hsi-saturation-control" onChange={saturation => change({ saturation })} /></>}
-          {settings.mode === "RGB" && <>{([['red', 'Rojo'], ['green', 'Verde'], ['blue', 'Azul']] as const).map(([key, label]) => <Adjustment key={key} label={label} value={settings[key]} min={0} max={255} onChange={value => change({ [key]: value })} />)}</>}
+          {settings.mode === "RGB" && <>{([['red', 'Rojo', 'rgb-red-control'], ['green', 'Verde', 'rgb-green-control'], ['blue', 'Azul', 'rgb-blue-control']] as const).map(([key, label, tone]) => <Adjustment key={key} label={label} value={settings[key]} min={0} max={255} tone={tone} onChange={value => change({ [key]: value })} />)}</>}
           {settings.mode === "FX" && <div className="active-effect"><Flame size={24} /><span>{settings.effect ?? "Sin efecto"}</span></div>}
         </section>
         <section className="tube-effects" aria-label="Efectos"><div className="control-section-title"><Thermometer size={15} /><span>Efectos</span></div><div className="tube-effect-grid">{effects.map(({ name, Icon }) => <Button key={name} variant="outline" className={`tube-effect ${settings.effect === name ? "effect-active" : ""}`} aria-pressed={settings.effect === name} onClick={() => change({ effect: settings.effect === name ? null : name })}><Icon /><span>{name}</span>{settings.effect === name && <Check className="effect-check" />}</Button>)}</div></section>

@@ -333,6 +333,10 @@ h2 { font-family: var(--font-heading); font-size: 15px; font-weight: 600; margin
 .hsi-brightness-control input { background: var(--control-hsi-brightness-track); }
 .hsi-hue-control input { background: var(--control-hsi-hue-track); }
 .hsi-saturation-control input { background: var(--control-hsi-saturation-track); }
+/* Each channel slider runs from that channel off to full, at the other channels' current levels. */
+.rgb-red-control input { background: var(--control-rgb-red-track, var(--secondary)); }
+.rgb-green-control input { background: var(--control-rgb-green-track, var(--secondary)); }
+.rgb-blue-control input { background: var(--control-rgb-blue-track, var(--secondary)); }
 .control-slider-row input::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--foreground); border: 3px solid var(--background); outline: 1px solid var(--border); }
 .control-slider-row input:focus-visible { outline: 2px solid var(--ring); outline-offset: 5px; }
 .control-range { display: flex; justify-content: space-between; padding: 5px 46px 0; font-size: 9px; color: var(--muted-foreground); }
