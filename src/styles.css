@@ -409,3 +409,12 @@ h2 { font-family: var(--font-heading); font-size: 15px; font-weight: 600; margin
 .song-wave-scroll { overflow-x: auto; margin: 0 1.25rem; }
 .song-wave-scroll .song-wave { margin: 0; gap: 0; }
 .song-wave-scroll .song-wave > span:not(.song-marker):not(.song-playhead):not(.song-loop-zone) { margin-right: 1px; }
+.song-cue { position: absolute; top: 0; width: .7rem; height: .7rem; border-radius: 50%; transform: translateX(-50%); background: var(--accent-foreground); border: 2px solid var(--background); pointer-events: none; z-index: 2; }
+.song-marker-row { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; padding: .5rem 1.25rem; border-block: 1px solid var(--border); }
+.song-marker-row select { background: var(--secondary); color: var(--foreground); border: 1px solid var(--border); border-radius: .5rem; padding: .35rem .5rem; }
+.song-marker-row input[type="color"] { width: 2.2rem; height: 2rem; border: none; background: none; }
+.song-marker-row .button, .song-marker-row button:last-child { margin-left: auto; }
+.song-marker-list { display: flex; flex-wrap: wrap; gap: .4rem; padding: 0 1.25rem; }
+.song-marker-chip { display: inline-flex; align-items: center; gap: .3rem; background: var(--secondary); border-radius: 999px; padding: .2rem .5rem; font-size: .75rem; }
+.song-marker-chip button { display: inline-flex; align-items: center; gap: .3rem; }
+.song-marker-chip i { width: .6rem; height: .6rem; border-radius: 50%; }
